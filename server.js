@@ -1,0 +1,124 @@
+const express = require('express');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Rate Limiter: Max 15 requests per 1-minute window per IP
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 15,
+  message: { error: 'Demasiadas peticiones. Por favor espera un minuto antes de intentar de nuevo.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiter to API routes
+app.use('/api/', apiLimiter);
+
+// Health check and config endpoint
+app.get('/api/config', (req, res) => {
+  res.json({
+    hasBackendKey: !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== '')
+  });
+});
+
+// Helper for calling Gemini 2.5 Flash API
+async function callGeminiAPI(apiKey, payload) {
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return await response.json();
+}
+
+// Endpoint 1: Generate Flashcard Deck
+app.post('/api/generate-deck', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'El tema (prompt) es requerido.' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY || req.headers['x-gemini-api-key'];
+    if (!apiKey) {
+      return res.status(401).json({ error: 'No se ha configurado ninguna API Key de Gemini.' });
+    }
+
+    const systemInstruction = "Actúa como un experto en pedagogía y aprendizaje de alto rendimiento. Genera una lista de 10 a 15 conceptos esenciales, términos científicos o palabras de vocabulario avanzados para memorizar sobre el tema provisto por el usuario. Devuelve ÚNICAMENTE los términos planos y limpios, separados exclusivamente por comas, sin explicaciones ni markdown. Ejemplo: Átomo, Electrón, Protón, Neutrón, Isótopo.";
+
+    const payload = {
+      contents: [{ parts: [{ text: `Tema: ${prompt}` }] }],
+      systemInstruction: { parts: [{ text: systemInstruction }] }
+    };
+
+    const data = await callGeminiAPI(apiKey, payload);
+
+    if (data.error) {
+      return res.status(500).json({ error: data.error.message || 'Error en la API de Gemini' });
+    }
+
+    const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textOutput) {
+      return res.status(500).json({ error: 'No se obtuvo respuesta estructurada de Gemini.' });
+    }
+
+    const cleanText = textOutput.trim().replace(/\n/g, ', ');
+    res.json({ concepts: cleanText });
+  } catch (error) {
+    console.error('Error en /api/generate-deck:', error);
+    res.status(500).json({ error: 'Error interno al comunicarse con Gemini API.' });
+  }
+});
+
+// Endpoint 2: Explain Word
+app.post('/api/explain-word', async (req, res) => {
+  try {
+    const { word } = req.body;
+    if (!word || typeof word !== 'string') {
+      return res.status(400).json({ error: 'El término a explicar es requerido.' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY || req.headers['x-gemini-api-key'];
+    if (!apiKey) {
+      return res.status(401).json({ error: 'No se ha configurado ninguna API Key de Gemini.' });
+    }
+
+    const payload = {
+      contents: [{ parts: [{ text: `Define de forma ultra-concisa (máximo de 12 palabras) y con enfoque educativo y práctico el término: "${word}"` }] }]
+    };
+
+    const data = await callGeminiAPI(apiKey, payload);
+
+    if (data.error) {
+      return res.status(500).json({ error: data.error.message || 'Error en la API de Gemini' });
+    }
+
+    const explanation = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'Definición no disponible.';
+    res.json({ explanation });
+  } catch (error) {
+    console.error('Error en /api/explain-word:', error);
+    res.status(500).json({ error: 'Error interno al comunicarse con Gemini API.' });
+  }
+});
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname)));
+
+// Fallback to index.html for single page application
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Start Server
+app.listen(PORT, () => {
+  console.log(`⚡ FlashFlash Server corriendo en puerto ${PORT}`);
+});
