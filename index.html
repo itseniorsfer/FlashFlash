@@ -76,14 +76,6 @@
                     <span id="lang-toggle-btn-text">🌐 ES</span>
                 </button>
 
-                <!-- Gemini API Key Config Trigger -->
-                <button onclick="toggleGeminiKeyModal()" class="text-xs font-medium text-gray-600 hover:text-emerald-600 transition-colors flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gray-100 border border-gray-200" aria-label="Configurar API Key de Gemini">
-                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"></path>
-                    </svg>
-                    <span id="gemini-key-status-label">🔑 API Key IA</span>
-                </button>
-
                 <!-- Info Guide Trigger for Accessibility guidelines -->
                 <button onclick="toggleInfoModal()" class="text-xs font-medium text-gray-500 hover:text-emerald-600 transition-colors flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gray-100" aria-label="Información de Accesibilidad y Heurísticas">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -355,55 +347,6 @@
         </div>
     </section>
 
-    <!-- Gemini API Key Configuration Modal -->
-    <div id="gemini-key-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-gray-100">
-            <div class="flex justify-between items-start border-b border-gray-200 pb-4">
-                <div>
-                    <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        🔑 Configurar API Key de Gemini
-                    </h3>
-                    <p class="text-xs text-gray-500 mt-1">Requerido para generar decks automáticos y explicaciones con IA</p>
-                </div>
-                <button onclick="toggleGeminiKeyModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold">
-                    &times;
-                </button>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label for="gemini-api-key-input" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                        Google Gemini API Key
-                    </label>
-                    <input type="password" id="gemini-api-key-input" 
-                        class="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:outline-none font-mono" 
-                        placeholder="AIzaSy...">
-                </div>
-
-                <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl text-xs text-emerald-900 space-y-1.5">
-                    <p class="font-semibold">💡 ¿Cómo obtener una API Key gratuita?</p>
-                    <p>Obtén tu clave en segundos desde Google AI Studio:</p>
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="text-emerald-700 font-bold underline hover:text-emerald-900 inline-flex items-center gap-1">
-                        Obtener API Key en Google AI Studio ↗
-                    </a>
-                </div>
-
-                <p class="text-[11px] text-gray-400 leading-relaxed">
-                    🔒 Tu API Key se guarda localmente en tu navegador (`localStorage`) y nunca es transmitida a ningún servidor de terceros aparte de los servidores oficiales de Google Gemini API.
-                </p>
-            </div>
-
-            <div class="pt-2 flex justify-end gap-3">
-                <button onclick="toggleGeminiKeyModal()" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all">
-                    Cancelar
-                </button>
-                <button onclick="saveGeminiApiKey()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow transition-all">
-                    Guardar API Key
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Accessible Modal for UX/UI Principles Reference (Guías MOSIP / UX4G) -->
     <div id="ux-info-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-gray-100 overflow-y-auto max-h-[85vh] no-scrollbar">
@@ -585,76 +528,12 @@
         }
 
         /* ------------------------------------------------------------- */
-        /* Gemini API Key Management & Backend Proxy                     */
-        /* ------------------------------------------------------------- */
-        let hasBackendProxyKey = false;
-
-        async function checkBackendConfig() {
-            try {
-                const res = await fetch('/api/config');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.hasBackendKey) {
-                        hasBackendProxyKey = true;
-                        updateGeminiKeyStatusUI();
-                    }
-                }
-            } catch (e) {
-                console.log('Modo Servidor Proxy no detectado, usando llamadas cliente.');
-            }
-        }
-
-        function getGeminiApiKey() {
-            return localStorage.getItem('flashflash_gemini_api_key') || window.GEMINI_API_KEY || "";
-        }
-
-        function saveGeminiApiKey() {
-            const input = document.getElementById('gemini-api-key-input');
-            const val = input.value.trim();
-            if (!val) {
-                alert("Por favor ingresa una API Key válida.");
-                return;
-            }
-            localStorage.setItem('flashflash_gemini_api_key', val);
-            updateGeminiKeyStatusUI();
-            toggleGeminiKeyModal();
-        }
-
-        function updateGeminiKeyStatusUI() {
-            const label = document.getElementById('gemini-key-status-label');
-            const key = getGeminiApiKey();
-            if (hasBackendProxyKey) {
-                label.textContent = "⚡ IA Activada (Cloud Run)";
-                label.parentElement.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
-            } else if (key) {
-                label.textContent = "✓ API Key Configurada";
-                label.parentElement.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
-            } else {
-                label.textContent = "🔑 API Key IA";
-                label.parentElement.classList.remove('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
-            }
-        }
-
-        function toggleGeminiKeyModal() {
-            const modal = document.getElementById('gemini-key-modal');
-            modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                const existingKey = getGeminiApiKey();
-                if (existingKey) {
-                    document.getElementById('gemini-api-key-input').value = existingKey;
-                }
-            }
-        }
-
-        /* ------------------------------------------------------------- */
         /* Document Initialization                                       */
         /* ------------------------------------------------------------- */
         window.onload = function() {
             // Pre-load default words into text box
             document.getElementById('concept-input').value = PRESETS.ux_principles;
             setLanguage(currentLang);
-            updateGeminiKeyStatusUI();
-            checkBackendConfig();
             
             // Set up event listeners for keyboard controls
             document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -672,19 +551,13 @@
         /* Gemini API Integration Features via Backend Proxy             */
         /* ------------------------------------------------------------- */
 
-        // Calls /api/generate-deck (Backend Proxy) or direct Gemini API as fallback
+        // Calls /api/generate-deck (Backend Proxy)
         async function generateAIDeck() {
             const promptInput = document.getElementById('ai-deck-prompt');
             const promptValue = promptInput.value.trim();
             const generateBtn = document.getElementById('ai-generate-btn');
             const btnText = document.getElementById('ai-btn-text');
             const btnSpinner = document.getElementById('ai-btn-spinner');
-
-            const apiKey = getGeminiApiKey();
-            if (!hasBackendProxyKey && !apiKey) {
-                toggleGeminiKeyModal();
-                return;
-            }
 
             if (!promptValue) {
                 alert(currentLang === 'en' ? "Please enter the deck topic you want to generate." : "Por favor, ingresa el tema del deck que deseas generar.");
@@ -697,13 +570,9 @@
             btnSpinner.classList.remove('hidden');
 
             try {
-                // Try calling Backend Proxy first
-                const headers = { 'Content-Type': 'application/json' };
-                if (apiKey) headers['x-gemini-api-key'] = apiKey;
-
                 const response = await fetch('/api/generate-deck', {
                     method: 'POST',
-                    headers: headers,
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: promptValue, lang: currentLang })
                 });
 
@@ -731,20 +600,13 @@
             }
         }
 
-        // Calls /api/explain-word (Backend Proxy) or direct Gemini API as fallback
+        // Calls /api/explain-word (Backend Proxy)
         async function explainCurrentWordWithAI() {
             const targetIndex = (state.playbackOrder === 'shuffle') ? state.shuffledIndices[state.currentIndex] : state.currentIndex;
             const currentWord = state.words[targetIndex];
             const spinner = document.getElementById('ai-explainer-spinner');
             const explainerBtn = document.getElementById('ai-explainer-btn');
 
-            const apiKey = getGeminiApiKey();
-            if (!hasBackendProxyKey && !apiKey) {
-                exitProjection();
-                toggleGeminiKeyModal();
-                return;
-            }
-            
             // UI Loader feedback
             spinner.classList.remove('hidden');
             explainerBtn.disabled = true;
@@ -756,12 +618,9 @@
             }
 
             try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (apiKey) headers['x-gemini-api-key'] = apiKey;
-
                 const response = await fetch('/api/explain-word', {
                     method: 'POST',
-                    headers: headers,
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ word: currentWord, lang: currentLang })
                 });
 
