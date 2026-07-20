@@ -68,6 +68,14 @@
             </div>
             
             <div class="flex items-center gap-3">
+                <!-- Language Toggle Button -->
+                <button onclick="toggleLanguage()" class="text-xs font-semibold text-gray-700 hover:text-emerald-600 transition-colors flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gray-100 border border-gray-200" aria-label="Cambiar idioma / Switch language">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                    </svg>
+                    <span id="lang-toggle-btn-text">🌐 ES</span>
+                </button>
+
                 <!-- Gemini API Key Config Trigger -->
                 <button onclick="toggleGeminiKeyModal()" class="text-xs font-medium text-gray-600 hover:text-emerald-600 transition-colors flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gray-100 border border-gray-200" aria-label="Configurar API Key de Gemini">
                     <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -81,7 +89,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span>Pautas UX/UI</span>
+                    <span id="i18n-ux-guidelines-btn">Pautas UX/UI</span>
                 </button>
             </div>
         </div>
@@ -98,23 +106,23 @@
                 <div>
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 mb-3">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Preparación Matutina
+                        <span data-i18n="prepBadge">Preparación Matutina</span>
                     </span>
-                    <h2 class="text-2xl font-bold text-gray-900">Configura tu sesión de lectura rápida</h2>
-                    <p class="text-sm text-gray-500 mt-1">Escribe o pega los conceptos que quieres memorizar hoy. Diseñado para verse nítido a gran distancia mientras disfrutas de tu café.</p>
+                    <h2 class="text-2xl font-bold text-gray-900" data-i18n="configTitle">Configura tu sesión de lectura rápida</h2>
+                    <p class="text-sm text-gray-500 mt-1" data-i18n="configSubtitle">Escribe o pega los conceptos que quieres memorizar hoy. Diseñado para verse nítido a gran distancia mientras disfrutas de tu café.</p>
                 </div>
 
                 <!-- Input Field: Upfront Text Area (MOSIP Pauta #1) -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <label for="concept-input" class="block text-sm font-semibold text-gray-700">
+                        <label for="concept-input" class="block text-sm font-semibold text-gray-700" data-i18n="inputLabel">
                             Conceptos y Palabras Clave
                         </label>
                         <span id="word-count" class="text-xs text-gray-400 font-medium">0 palabras detectadas</span>
                     </div>
                     
                     <div class="relative">
-                        <textarea id="concept-input" 
+                        <textarea id="concept-input" data-i18n="inputPlaceholder" 
                             class="w-full h-48 p-4 text-base border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-0 transition-all duration-200 ease-in-out placeholder-gray-400 shadow-inner-soft resize-none no-scrollbar font-sans"
                             placeholder="Ejemplo: Resiliencia, Aprendizaje, UX, Accesibilidad, Consistencia, Tolerancia, Foco, Heurística"
                             oninput="analyzeWords()"></textarea>
@@ -134,31 +142,31 @@
                     <div class="p-4 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 rounded-xl space-y-3">
                         <div class="flex items-center gap-2">
                             <span class="text-lg">🪄</span>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-800">Generar Deck con Inteligencia Artificial</h4>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-800" data-i18n="aiTitle">Generar Deck con Inteligencia Artificial</h4>
                         </div>
                         <div class="flex gap-2">
-                            <input type="text" id="ai-deck-prompt" 
+                            <input type="text" id="ai-deck-prompt" data-i18n="aiPlaceholder"
                                 class="flex-grow px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
                                 placeholder="Ej: Vocabulario B2 en Alemán, Términos de Docker, Filosofía Estoica...">
                             <button onclick="generateAIDeck()" id="ai-generate-btn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg shadow transition-colors flex items-center gap-1">
-                                <span id="ai-btn-text">Generar</span>
+                                <span id="ai-btn-text" data-i18n="aiBtn">Generar</span>
                                 <span id="ai-btn-spinner" class="hidden animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></span>
                             </button>
                         </div>
-                        <p class="text-[10px] text-gray-500 leading-relaxed">Explica de qué tema quieres estudiar y la inteligencia de Gemini creará un set óptimo de palabras para tu proyección matutina.</p>
+                        <p class="text-[10px] text-gray-500 leading-relaxed" data-i18n="aiSubtitle">Explica de qué tema quieres estudiar y la inteligencia de Gemini creará un set óptimo de palabras para tu proyección matutina.</p>
                     </div>
 
                     <!-- Shortcut buttons to load preset decks (UX Convenience) -->
                     <div class="pt-2">
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Cargar Decks de Muestra Rápidos:</span>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2" data-i18n="presetLabel">Cargar Decks de Muestra Rápidos:</span>
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="loadPreset('ux_principles')" class="px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-medium rounded-lg text-gray-600 transition-colors border border-gray-200">
+                            <button onclick="loadPreset('ux_principles')" class="px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-medium rounded-lg text-gray-600 transition-colors border border-gray-200" data-i18n="presetUx">
                                 💡 Principios UX
                             </button>
-                            <button onclick="loadPreset('tech_trends')" class="px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-medium rounded-lg text-gray-600 transition-colors border border-gray-200">
+                            <button onclick="loadPreset('tech_trends')" class="px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-medium rounded-lg text-gray-600 transition-colors border border-gray-200" data-i18n="presetTech">
                                 🌐 Tecnología 2026
                             </button>
-                            <button onclick="loadPreset('positive_minds')" class="px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-medium rounded-lg text-gray-600 transition-colors border border-gray-200">
+                            <button onclick="loadPreset('positive_minds')" class="px-3 py-1.5 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-medium rounded-lg text-gray-600 transition-colors border border-gray-200" data-i18n="presetFocus">
                                 ✨ Enfoque Matutino
                             </button>
                         </div>
@@ -174,44 +182,44 @@
                         <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                         </svg>
-                        Parámetros de Proyección
+                        <span data-i18n="paramsTitle">Parámetros de Proyección</span>
                     </h3>
 
                     <!-- Control de Velocidad (Slider UI with clear markers) -->
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
-                            <label for="speed-slider" class="text-sm font-semibold text-gray-700">Intervalo de Velocidad</label>
+                            <label for="speed-slider" class="text-sm font-semibold text-gray-700" data-i18n="speedLabel">Intervalo de Velocidad</label>
                             <span id="speed-display" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-sm font-bold rounded-lg">0.5s</span>
                         </div>
-                        <p class="text-xs text-gray-400">Determina el ritmo de transición entre cada palabra clave en pantalla.</p>
+                        <p class="text-xs text-gray-400" data-i18n="speedSubtitle">Determina el ritmo de transición entre cada palabra clave en pantalla.</p>
                         <div class="relative pt-1">
                             <input type="range" id="speed-slider" min="0.2" max="3.0" step="0.1" value="0.5" 
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none"
                                 oninput="updateSpeedLabel(this.value)">
                             <div class="flex justify-between text-xs text-gray-400 mt-2 px-1">
-                                <span>Ultra Rápido (0.2s)</span>
-                                <span>Estándar (1s)</span>
-                                <span>Lento (3s)</span>
+                                <span data-i18n="speedFast">Ultra Rápido (0.2s)</span>
+                                <span data-i18n="speedStd">Estándar (1s)</span>
+                                <span data-i18n="speedSlow">Lento (3s)</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Orden de Visualización (Binary Toggle Button with absolute accessibility labels) -->
                     <div class="space-y-3 pt-2">
-                        <label class="block text-sm font-semibold text-gray-700">Orden de Secuencia</label>
-                        <p class="text-xs text-gray-400">Configura la lógica del bucle de visualización según tu preferencia cognitiva.</p>
+                        <label class="block text-sm font-semibold text-gray-700" data-i18n="orderLabel">Orden de Secuencia</label>
+                        <p class="text-xs text-gray-400" data-i18n="orderSubtitle">Configura la lógica del bucle de visualización según tu preferencia cognitiva.</p>
                         <div class="grid grid-cols-2 gap-3 bg-gray-100 p-1.5 rounded-xl border border-gray-200">
                             <button id="order-sequential" onclick="setOrder('sequential')" class="py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 bg-white text-emerald-700 shadow-sm" aria-pressed="true">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
                                 </svg>
-                                Secuencial
+                                <span data-i18n="orderSeq">Secuencial</span>
                             </button>
                             <button id="order-shuffle" onclick="setOrder('shuffle')" class="py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900" aria-pressed="false">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 19v-5h-5.11"></path>
                                 </svg>
-                                Aleatorio (Shuffle)
+                                <span data-i18n="orderShuf">Aleatorio (Shuffle)</span>
                             </button>
                         </div>
                     </div>
@@ -233,7 +241,7 @@
                             <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
                             </svg>
-                            <span>Iniciar Proyección</span>
+                            <span data-i18n="startBtn">Iniciar Proyección</span>
                         </button>
                     </div>
                 </div>
@@ -469,12 +477,112 @@
             activeAudio: null // For playing Gemini TTS audio streams
         };
 
-        /* Preset lists of keywords for UX convenience and fast loading */
-        const PRESETS = {
-            ux_principles: "Consistencia, Retroalimentación, Estructura, Legibilidad, Carga Cognitiva, Tolerancia, Flexibilidad, Simplicidad, Accesibilidad, Claridad, Interacción, Eficiencia",
-            tech_trends: "Inteligencia Artificial, Interfaz 10-pies, Computación Cuántica, Edge Computing, Metaverso, UI Autonómica, Nanotecnología, Sostenibilidad, Blockchain, Web3, IoT",
-            positive_minds: "Disciplina, Enfoque, Constancia, Progreso, Creatividad, Gratitud, Resiliencia, Aprendizaje, Innovación, Éxito, Motivación, Propósito"
+        /* ------------------------------------------------------------- */
+        /* Internationalization (i18n: ES / EN)                          */
+        /* ------------------------------------------------------------- */
+        let currentLang = localStorage.getItem('flashflash_lang') || 'es';
+
+        const I18N = {
+            es: {
+                langBtn: "🌐 ES",
+                uxGuidelinesBtn: "Pautas UX/UI",
+                headerSubtitle: "Aprendizaje Rápido • 10-Foot UI",
+                prepBadge: "Preparación Matutina",
+                configTitle: "Configura tu sesión de lectura rápida",
+                configSubtitle: "Escribe o pega los conceptos que quieres memorizar hoy. Diseñado para verse nítido a gran distancia mientras disfrutas de tu café.",
+                inputLabel: "Conceptos y Palabras Clave",
+                inputPlaceholder: "Ejemplo: Resiliencia, Aprendizaje, UX, Accesibilidad, Consistencia, Tolerancia, Foco, Heurística",
+                aiTitle: "Generar Deck con Inteligencia Artificial",
+                aiPlaceholder: "Ej: Vocabulario B2 en Alemán, Términos de Docker, Filosofía Estoica...",
+                aiBtn: "Generar",
+                aiSubtitle: "Explica de qué tema quieres estudiar y la inteligencia de Gemini creará un set óptimo de palabras para tu proyección matutina.",
+                presetLabel: "Cargar Decks de Muestra Rápidos:",
+                presetUx: "💡 Principios UX",
+                presetTech: "🌐 Tecnología 2026",
+                presetFocus: "✨ Enfoque Matutino",
+                paramsTitle: "Parámetros de Proyección",
+                speedLabel: "Intervalo de Velocidad",
+                speedSubtitle: "Determina el ritmo de transición entre cada palabra clave en pantalla.",
+                speedFast: "Ultra Rápido (0.2s)",
+                speedStd: "Estándar (1s)",
+                speedSlow: "Lento (3s)",
+                orderLabel: "Orden de Secuencia",
+                orderSubtitle: "Configura la lógica del bucle de visualización según tu preferencia cognitiva.",
+                orderSeq: "Secuencial",
+                orderShuf: "Aleatorio (Shuffle)",
+                startBtn: "Iniciar Proyección Matutina",
+                explainBtn: "💡 Explicar este concepto con IA",
+                remoteHelp: "Control Remoto Activo: [Espacio] para detener • [←] o [→] para saltar • [Esc] para salir",
+                exitBtn: "Salir (Esc)",
+                playingStatus: "REPRODUCIENDO",
+                pausedStatus: "DETENIDO",
+                cardCount: (curr, total) => `Concepto ${curr} / ${total}`,
+                wordsCount: (count) => `${count} palabra(s) detectada(s)`
+            },
+            en: {
+                langBtn: "🌐 EN",
+                uxGuidelinesBtn: "UX/UI Guidelines",
+                headerSubtitle: "Rapid Learning • 10-Foot UI",
+                prepBadge: "Morning Routine",
+                configTitle: "Configure your rapid flashcard session",
+                configSubtitle: "Type or paste the concepts you want to memorize today. Designed for crisp viewing from across the room while sipping your coffee.",
+                inputLabel: "Concepts & Keywords",
+                inputPlaceholder: "Example: Resilience, Learning, UX, Accessibility, Consistency, Tolerance, Focus, Heuristics",
+                aiTitle: "Generate Deck with Artificial Intelligence",
+                aiPlaceholder: "Ex: B2 German Vocabulary, Docker Terms, Stoic Philosophy...",
+                aiBtn: "Generate",
+                aiSubtitle: "Specify the topic you want to study and Gemini AI will create an optimal flashcard deck for your morning projection.",
+                presetLabel: "Load Quick Preset Decks:",
+                presetUx: "💡 UX Principles",
+                presetTech: "🌐 Tech 2026",
+                presetFocus: "✨ Morning Focus",
+                paramsTitle: "Projection Parameters",
+                speedLabel: "Speed Interval",
+                speedSubtitle: "Determines the transition tempo between each word on screen.",
+                speedFast: "Ultra Fast (0.2s)",
+                speedStd: "Standard (1s)",
+                speedSlow: "Slow (3s)",
+                orderLabel: "Sequence Order",
+                orderSubtitle: "Configure display loop logic according to your cognitive preference.",
+                orderSeq: "Sequential",
+                orderShuf: "Shuffle",
+                startBtn: "Start Morning Projection",
+                explainBtn: "💡 Explain this concept with AI",
+                remoteHelp: "Active Remote Control: [Space] to Pause • [←] or [→] to Skip • [Esc] to Exit",
+                exitBtn: "Exit (Esc)",
+                playingStatus: "PLAYING",
+                pausedStatus: "PAUSED",
+                cardCount: (curr, total) => `Card ${curr} / ${total}`,
+                wordsCount: (count) => `${count} word(s) detected`
+            }
         };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('flashflash_lang', lang);
+            document.getElementById('lang-toggle-btn-text').textContent = I18N[lang].langBtn;
+            
+            // Update UI elements with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (I18N[lang] && I18N[lang][key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = I18N[lang][key];
+                    } else {
+                        el.textContent = I18N[lang][key];
+                    }
+                }
+            });
+
+            // Re-analyze words to update word count in selected language
+            analyzeWords();
+            updatePlayPauseButtonUI();
+        }
+
+        function toggleLanguage() {
+            const nextLang = currentLang === 'es' ? 'en' : 'es';
+            setLanguage(nextLang);
+        }
 
         /* ------------------------------------------------------------- */
         /* Gemini API Key Management & Backend Proxy                     */
@@ -544,7 +652,7 @@
         window.onload = function() {
             // Pre-load default words into text box
             document.getElementById('concept-input').value = PRESETS.ux_principles;
-            analyzeWords();
+            setLanguage(currentLang);
             updateGeminiKeyStatusUI();
             checkBackendConfig();
             
@@ -579,13 +687,13 @@
             }
 
             if (!promptValue) {
-                alert("Por favor, ingresa el tema del deck que deseas generar.");
+                alert(currentLang === 'en' ? "Please enter the deck topic you want to generate." : "Por favor, ingresa el tema del deck que deseas generar.");
                 return;
             }
 
             // UI State change: start loading
             generateBtn.disabled = true;
-            btnText.textContent = "Generando...";
+            btnText.textContent = currentLang === 'en' ? "Generating..." : "Generando...";
             btnSpinner.classList.remove('hidden');
 
             try {
@@ -596,7 +704,7 @@
                 const response = await fetch('/api/generate-deck', {
                     method: 'POST',
                     headers: headers,
-                    body: JSON.stringify({ prompt: promptValue })
+                    body: JSON.stringify({ prompt: promptValue, lang: currentLang })
                 });
 
                 const result = await response.json();
@@ -611,14 +719,14 @@
                     analyzeWords();
                     promptInput.value = ""; // Clear AI input
                 } else {
-                    alert("No pudimos estructurar la lista en este momento. Inténtalo de nuevo.");
+                    alert(currentLang === 'en' ? "Could not generate deck at this moment. Please try again." : "No pudimos estructurar la lista en este momento. Inténtalo de nuevo.");
                 }
             } catch (error) {
                 console.error("Error en generación de deck con IA:", error);
                 alert("Ocurrió un inconveniente al comunicarse con la IA.");
             } finally {
                 generateBtn.disabled = false;
-                btnText.textContent = "Generar";
+                btnText.textContent = I18N[currentLang].aiBtn;
                 btnSpinner.classList.add('hidden');
             }
         }
@@ -654,11 +762,11 @@
                 const response = await fetch('/api/explain-word', {
                     method: 'POST',
                     headers: headers,
-                    body: JSON.stringify({ word: currentWord })
+                    body: JSON.stringify({ word: currentWord, lang: currentLang })
                 });
 
                 const result = await response.json();
-                const explanation = result.explanation || "Definición no disponible.";
+                const explanation = result.explanation || (currentLang === 'en' ? "Definition unavailable." : "Definición no disponible.");
 
                 // Render definition visually
                 const explanationBox = document.getElementById('ai-explanation-box');
@@ -759,9 +867,9 @@
             const countSpan = document.getElementById('word-count');
             
             if(processedList.length === 1 && processedList[0] === "") {
-                countSpan.textContent = "0 palabras detectadas";
+                countSpan.textContent = I18N[currentLang] ? I18N[currentLang].wordsCount(0) : "0 palabras detectadas";
             } else {
-                countSpan.textContent = `${processedList.length} palabra(s) detectada(s)`;
+                countSpan.textContent = I18N[currentLang] ? I18N[currentLang].wordsCount(processedList.length) : `${processedList.length} palabra(s) detectada(s)`;
             }
         }
 
@@ -1012,7 +1120,8 @@
                 wordElement.style.opacity = '1';
                 
                 // Keep progress index HUD updated (Inclusivity & System state status)
-                document.getElementById('hud-index-tracker').textContent = `Concepto ${state.currentIndex + 1} / ${state.words.length}`;
+                const cardLabel = (I18N[currentLang] && I18N[currentLang].cardCount) ? I18N[currentLang].cardCount(state.currentIndex + 1, state.words.length) : `Concepto ${state.currentIndex + 1} / ${state.words.length}`;
+                document.getElementById('hud-index-tracker').textContent = cardLabel;
                 
                 triggerBeep();
             }, 40);
@@ -1060,7 +1169,7 @@
                 btn.className = "btn-active-scale w-20 h-20 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-emerald-500/20 transition-all border-b-4 border-emerald-700";
                 
                 hudDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                hudText.textContent = "REPRODUCIENDO";
+                hudText.textContent = I18N[currentLang] ? I18N[currentLang].playingStatus : "REPRODUCIENDO";
                 aiExplainerBar.classList.add('hidden'); // Hide explaining utilities while looping
             } else {
                 // Paused state (Pauta MOSIP #5 - Consistent status visual tags)
@@ -1069,7 +1178,7 @@
                 btn.className = "btn-active-scale w-20 h-20 bg-dangerRed hover:bg-dangerRedHover text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-red-500/20 transition-all border-b-4 border-red-700";
                 
                 hudDot.className = "w-2 h-2 rounded-full bg-dangerRed";
-                hudText.textContent = "DETENIDO";
+                hudText.textContent = I18N[currentLang] ? I18N[currentLang].pausedStatus : "DETENIDO";
                 aiExplainerBar.classList.remove('hidden'); // Reveal AI Explainer options
             }
         }

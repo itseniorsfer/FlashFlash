@@ -67,7 +67,7 @@ async function callGeminiAPI(apiKey, payload) {
 // Endpoint 1: Generate Flashcard Deck
 app.post('/api/generate-deck', async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, lang = 'es' } = req.body;
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'El tema (prompt) es requerido.' });
     }
@@ -77,10 +77,13 @@ app.post('/api/generate-deck', async (req, res) => {
       return res.status(401).json({ error: 'No se ha configurado ninguna API Key de Gemini.' });
     }
 
-    const systemInstruction = "Actúa como un experto en pedagogía y aprendizaje de alto rendimiento. Genera una lista de 10 a 15 conceptos esenciales, términos científicos o palabras de vocabulario avanzados para memorizar sobre el tema provisto por el usuario. Devuelve ÚNICAMENTE los términos planos y limpios, separados exclusivamente por comas, sin explicaciones ni markdown. Ejemplo: Átomo, Electrón, Protón, Neutrón, Isótopo.";
+    const isEn = lang === 'en';
+    const systemInstruction = isEn
+      ? "Act as a high-performance learning expert. Generate a clean list of 10 to 15 essential concepts, scientific terms, or key vocabulary words to memorize about the user's topic. Return ONLY the plain words/terms separated exclusively by commas, with no intro, markdown, or explanation. Example: Atom, Electron, Proton, Neutron, Isotope."
+      : "Actúa como un experto en pedagogía y aprendizaje de alto rendimiento. Genera una lista de 10 a 15 conceptos esenciales, términos científicos o palabras de vocabulario avanzados para memorizar sobre el tema provisto por el usuario. Devuelve ÚNICAMENTE los términos planos y limpios, separados exclusivamente por comas, sin explicaciones ni markdown. Ejemplo: Átomo, Electrón, Protón, Neutrón, Isótopo.";
 
     const payload = {
-      contents: [{ parts: [{ text: `Tema: ${prompt}` }] }],
+      contents: [{ parts: [{ text: `Topic: ${prompt}` }] }],
       systemInstruction: { parts: [{ text: systemInstruction }] }
     };
 
@@ -106,7 +109,7 @@ app.post('/api/generate-deck', async (req, res) => {
 // Endpoint 2: Explain Word
 app.post('/api/explain-word', async (req, res) => {
   try {
-    const { word } = req.body;
+    const { word, lang = 'es' } = req.body;
     if (!word || typeof word !== 'string') {
       return res.status(400).json({ error: 'El término a explicar es requerido.' });
     }
@@ -116,8 +119,13 @@ app.post('/api/explain-word', async (req, res) => {
       return res.status(401).json({ error: 'No se ha configurado ninguna API Key de Gemini.' });
     }
 
+    const isEn = lang === 'en';
+    const textPrompt = isEn
+      ? `Define the term "${word}" ultra-concisely (maximum 12 words) with an educational and practical focus in English.`
+      : `Define de forma ultra-concisa (máximo de 12 palabras) y con enfoque educativo y práctico el término: "${word}"`;
+
     const payload = {
-      contents: [{ parts: [{ text: `Define de forma ultra-concisa (máximo de 12 palabras) y con enfoque educativo y práctico el término: "${word}"` }] }]
+      contents: [{ parts: [{ text: textPrompt }] }]
     };
 
     const data = await callGeminiAPI(apiKey, payload);
