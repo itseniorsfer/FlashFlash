@@ -32,15 +32,36 @@ app.get('/api/config', (req, res) => {
   });
 });
 
-// Helper for calling Gemini 2.5 Flash API
+// Helper for calling Gemini API with auto-fallback to active Gemini 3+ models
 async function callGeminiAPI(apiKey, payload) {
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  return await response.json();
+  const models = [
+    process.env.GEMINI_MODEL,
+    'gemini-3.5-flash',
+    'gemini-3-flash-preview',
+    'gemini-3.1-pro-preview',
+    'gemini-3-pro-preview',
+    'gemini-2.5-flash'
+  ].filter(Boolean);
+
+  let lastData = null;
+  for (const model of models) {
+    try {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (data.candidates && data.candidates.length > 0) {
+        return data;
+      }
+      lastData = data;
+    } catch (e) {
+      console.warn(`Falló intento con modelo ${model}:`, e.message);
+    }
+  }
+  return lastData;
 }
 
 // Endpoint 1: Generate Flashcard Deck
