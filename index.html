@@ -139,7 +139,8 @@
                         <div class="flex gap-2">
                             <input type="text" id="ai-deck-prompt" data-i18n="aiPlaceholder"
                                 class="flex-grow px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                                placeholder="Ej: Vocabulario B2 en Alemán, Términos de Docker, Filosofía Estoica...">
+                                placeholder="Ej: Vocabulario B2 en Alemán, Términos de Docker, Filosofía Estoica..."
+                                onkeydown="if(event.key === 'Enter') generateAIDeck()">
                             <button onclick="generateAIDeck()" id="ai-generate-btn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg shadow transition-colors flex items-center gap-1">
                                 <span id="ai-btn-text" data-i18n="aiBtn">Generar</span>
                                 <span id="ai-btn-spinner" class="hidden animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></span>
@@ -619,7 +620,6 @@
                 if (result.concepts) {
                     document.getElementById('concept-input').value = result.concepts;
                     analyzeWords();
-                    promptInput.value = ""; // Clear AI input
                 } else {
                     alert(currentLang === 'en' ? "Could not generate deck at this moment. Please try again." : "No pudimos estructurar la lista en este momento. Inténtalo de nuevo.");
                 }
