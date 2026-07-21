@@ -732,9 +732,20 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Error al conectar con la IA');
 
-                if (data.words && Array.isArray(data.words)) {
-                    document.getElementById('concept-input').value = data.words.join(', ');
+                const resultText = data.concepts || (Array.isArray(data.words) ? data.words.join(', ') : data.words) || '';
+                if (resultText) {
+                    const textarea = document.getElementById('concept-input');
+                    textarea.value = resultText;
                     analyzeWords();
+
+                    // Scroll suave hacia el cuadro principal para visibilidad inmediata
+                    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Efecto de resplandor verde en el cuadro de texto
+                    textarea.classList.add('ring-4', 'ring-emerald-500');
+                    setTimeout(() => {
+                        textarea.classList.remove('ring-4', 'ring-emerald-500');
+                    }, 1800);
                 }
             } catch (err) {
                 alert('Error al generar deck con IA: ' + err.message);
