@@ -330,8 +330,8 @@
 
         <!-- Central High-Acuity Stage (10-Foot Projection Viewport) -->
         <div class="flex-grow flex flex-col items-center justify-center relative w-full my-auto py-8">
-            <div id="word-projection-container" class="w-full text-center flex items-center justify-center min-h-[40vh]">
-                <h1 id="word-projection" class="text-10foot font-black tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)] transition-all duration-75 select-none font-sans px-4">
+            <div id="word-projection-container" class="w-full max-w-6xl mx-auto text-center flex items-center justify-center min-h-[40vh] max-h-[75vh] overflow-y-auto no-scrollbar px-4 sm:px-8">
+                <h1 id="word-projection" class="font-black tracking-tight text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)] transition-all duration-75 select-none font-sans px-2 break-words">
                     INICIANDO
                 </h1>
             </div>
@@ -971,6 +971,27 @@
 
             setTimeout(() => {
                 wordElem.textContent = currentWord;
+
+                // Motor de Escalado Dinámico de Fuente (Adaptive Fit-Text Engine)
+                const charCount = currentWord.length;
+                if (charCount <= 12) {
+                    // Palabras cortas (ej: "Resiliencia", "H - Hidrógeno") -> Tamaño Héroe 10-Foot UI
+                    wordElem.style.fontSize = 'clamp(3.5rem, 12vw, 13rem)';
+                    wordElem.style.lineHeight = '1.05';
+                } else if (charCount <= 30) {
+                    // Conceptos de longitud media -> Tamaño Grande
+                    wordElem.style.fontSize = 'clamp(2.5rem, 7vw, 7rem)';
+                    wordElem.style.lineHeight = '1.15';
+                } else if (charCount <= 70) {
+                    // Frases largas o definiciones -> Tamaño Mediano
+                    wordElem.style.fontSize = 'clamp(1.8rem, 4.5vw, 4.5rem)';
+                    wordElem.style.lineHeight = '1.25';
+                } else {
+                    // Oraciones completas o párrafos largos (90+ caracteres) -> Tamaño Adaptativo Compacto
+                    wordElem.style.fontSize = 'clamp(1.25rem, 3.2vw, 3.2rem)';
+                    wordElem.style.lineHeight = '1.35';
+                }
+
                 wordElem.style.opacity = '1';
                 wordElem.style.transform = 'scale(1)';
             }, 60);
