@@ -79,12 +79,16 @@ app.post('/api/generate-deck', async (req, res) => {
 
     const isEn = lang === 'en';
     const systemInstruction = isEn
-      ? "Act as a high-performance learning expert. Generate a clean list of 10 to 15 essential concepts, scientific terms, or key vocabulary words to memorize about the user's topic. Return ONLY the plain words/terms separated exclusively by commas, with no intro, markdown, or explanation. Example: Atom, Electron, Proton, Neutron, Isotope."
-      : "Actúa como un experto en pedagogía y aprendizaje de alto rendimiento. Genera una lista de 10 a 15 conceptos esenciales, términos científicos o palabras de vocabulario avanzados para memorizar sobre el tema provisto por el usuario. Devuelve ÚNICAMENTE los términos planos y limpios, separados exclusivamente por comas, sin explicaciones ni markdown. Ejemplo: Átomo, Electrón, Protón, Neutrón, Isótopo.";
+      ? "Act as a high-performance learning expert. Analyze the user's prompt carefully. If the user specifies a quantity (e.g., 100 elements, 50 verbs, 30 terms), generate EXACTLY that requested quantity. If no quantity is specified, generate 20 to 30 essential concepts or terms. Return ONLY the items separated exclusively by commas, with NO list numbers, NO bullet points, NO introductory text, and NO conclusion commentary. Strictly respect requested formatting inside each item, such as 'Symbol - Name' or 'Word - Translation'."
+      : "Actúa como un experto en pedagogía y aprendizaje de alto rendimiento. Analiza cuidadosamente la petición del usuario. Si el usuario especifica una cantidad (ejemplo: 100 elementos de la tabla periódica, 50 verbos, 30 conceptos), genera EXACTAMENTE esa cantidad solicitada. Si no especifica cantidad, genera de 20 a 30 conceptos esenciales. Devuelve ÚNICAMENTE los elementos separados exclusivamente por comas, SIN números de lista (como 1., 2.), SIN viñetas, SIN introducción y SIN comentarios finales. Respeta fielmente formatos internos solicitados como 'Símbolo - Nombre' o 'Término - Definición'.";
 
     const payload = {
-      contents: [{ parts: [{ text: `Topic: ${prompt}` }] }],
-      systemInstruction: { parts: [{ text: systemInstruction }] }
+      contents: [{ parts: [{ text: `Prompt del usuario: ${prompt}` }] }],
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      generationConfig: {
+        maxOutputTokens: 8192,
+        temperature: 0.2
+      }
     };
 
     const data = await callGeminiAPI(apiKey, payload);
@@ -98,7 +102,15 @@ app.post('/api/generate-deck', async (req, res) => {
       return res.status(500).json({ error: 'No se obtuvo respuesta estructurada de Gemini.' });
     }
 
-    const cleanText = textOutput.trim().replace(/\n/g, ', ');
+    // Limpieza avanzada: remueve números de lista (1., 2.), guiones de viñeta e intros
+    let cleanText = textOutput
+      .trim()
+      .replace(/^(Aquí tienes|Here is|Below is|Lista de).*?\n+/gi, '')
+      .split(/\n+/)
+      .map(line => line.replace(/^[\d\s\.\*\-\•\)\:]+/, '').trim())
+      .filter(Boolean)
+      .join(', ');
+
     res.json({ concepts: cleanText });
   } catch (error) {
     console.error('Error en /api/generate-deck:', error);
