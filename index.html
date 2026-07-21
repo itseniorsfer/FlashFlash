@@ -25,6 +25,9 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- PDF.js CDN for client-side PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
     <!-- Google Fonts for High Contrast & Optimal Visual Acuity -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -123,13 +126,30 @@
                         </span>
                     </div>
 
-                    <!-- CAMPO DE TEXTO GIGANTE Y PROTAGONISTA -->
-                    <div class="relative">
+                    <!-- CAMPO DE TEXTO GIGANTE Y PROTAGONISTA CON DRAG & DROP -->
+                    <div id="drop-zone" class="relative group transition-all rounded-2xl" 
+                        ondragover="handleDragOver(event)" 
+                        ondragleave="handleDragLeave(event)" 
+                        ondrop="handleDrop(event)">
+                        
                         <textarea id="concept-input" data-i18n="inputPlaceholder" 
                             class="w-full h-72 p-5 text-xl font-medium border-2 border-slate-200 rounded-2xl focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:outline-none transition-all shadow-inner resize-none font-sans leading-relaxed text-slate-800 placeholder-slate-400"
                             placeholder="Ejemplo: Resiliencia, Aprendizaje, UX, Accesibilidad, Consistencia, Tolerancia, Foco, Heurística"
                             oninput="analyzeWords()"></textarea>
                         
+                        <!-- Drag & Drop Visual Overlay -->
+                        <div id="drop-overlay" class="absolute inset-0 bg-teal-600/95 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center text-white border-4 border-dashed border-white shadow-2xl opacity-0 pointer-events-none transition-all duration-200">
+                            <span class="text-4xl mb-2 animate-bounce">📁</span>
+                            <span class="text-lg font-black" data-i18n="dropText">¡Suelta tu archivo aquí!</span>
+                            <span class="text-xs font-semibold text-teal-100 mt-1">Extraerá automáticamente el texto (.txt, .pdf)</span>
+                        </div>
+
+                        <!-- Toast de Estado de Archivo / Carga -->
+                        <div id="file-loading-status" class="absolute top-4 right-4 bg-teal-900/90 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-lg hidden flex items-center gap-2 backdrop-blur-md">
+                            <span class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></span>
+                            <span id="file-loading-text">Extrayendo texto...</span>
+                        </div>
+
                         <!-- Floating Warning Toast inside Input Box for empty field error prevention (Heurística #5) -->
                         <div id="input-error-toast" class="absolute bottom-4 left-4 right-4 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl shadow-lg hidden flex items-start gap-3 transform translate-y-2 transition-all duration-300">
                             <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -141,10 +161,18 @@
                         </div>
                     </div>
 
-                    <!-- Presets Rápidos de Muestra debajo del Textarea -->
+                    <!-- Presets Rápidos de Muestra y Botón de Subir Archivos debajo del Textarea -->
                     <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
-                        <span class="text-xs font-bold text-slate-500" data-i18n="presetLabel">Cargar lista de ejemplo:</span>
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <button onclick="document.getElementById('file-upload-input').click()" class="px-3.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-900 text-xs font-extrabold rounded-xl border border-teal-200 transition-all flex items-center gap-1.5 shadow-xs">
+                                <span>📄</span>
+                                <span data-i18n="uploadBtn">Cargar Archivo (.txt, .pdf)</span>
+                            </button>
+                            <input type="file" id="file-upload-input" accept=".txt,.pdf,.md,.csv" class="hidden" onchange="handleFileSelect(event)">
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-bold text-slate-400" data-i18n="presetLabel">Ejemplos:</span>
                             <button onclick="loadPreset('ux_principles')" class="px-3 py-1.5 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-xs font-bold rounded-xl text-slate-600 border border-slate-200 transition-all" data-i18n="presetUx">
                                 💡 Principios UX
                             </button>
@@ -540,7 +568,9 @@
                 aiBtn: "Generar",
                 aiSamplesLabel: "Prompts Rápidos de Ejemplo:",
                 aiSubtitle: "Escribe cualquier tema y Gemini creará las palabras directamente en el cuadro principal de arriba.",
-                presetLabel: "Cargar lista de ejemplo:",
+                uploadBtn: "Cargar Archivo (.txt, .pdf)",
+                dropText: "¡Suelta tu archivo aquí!",
+                presetLabel: "Ejemplos:",
                 presetUx: "💡 Principios UX",
                 presetTech: "🌐 Tecnología 2026",
                 presetFocus: "✨ Enfoque Matutino",
@@ -584,7 +614,9 @@
                 aiBtn: "Generate",
                 aiSamplesLabel: "Quick Sample Prompts:",
                 aiSubtitle: "Type any topic and Gemini AI will create words directly in the main box above.",
-                presetLabel: "Load sample list:",
+                uploadBtn: "Upload File (.txt, .pdf)",
+                dropText: "Drop your file here!",
+                presetLabel: "Examples:",
                 presetUx: "💡 UX Principles",
                 presetTech: "🌐 Tech 2026",
                 presetFocus: "✨ Morning Focus",
@@ -695,6 +727,112 @@
                 span.classList.add('translate-x-0');
                 btn.setAttribute('aria-checked', 'false');
             }
+        }
+
+        /* ------------------------------------------------------------- */
+        /* File Drag & Drop & PDF / TXT Parsing Engine                   */
+        /* ------------------------------------------------------------- */
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const overlay = document.getElementById('drop-overlay');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-100');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const overlay = document.getElementById('drop-overlay');
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleDragLeave(e);
+
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                processUploadedFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                processUploadedFile(files[0]);
+            }
+            e.target.value = '';
+        }
+
+        async function processUploadedFile(file) {
+            if (!file) return;
+
+            const loader = document.getElementById('file-loading-status');
+            const loaderText = document.getElementById('file-loading-text');
+            const fileName = file.name;
+            const fileExt = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+
+            loaderText.textContent = `Leyendo ${fileName}...`;
+            loader.classList.remove('hidden');
+
+            try {
+                let extractedText = '';
+
+                if (fileExt === '.pdf') {
+                    extractedText = await extractTextFromPDF(file);
+                } else {
+                    extractedText = await extractTextFromTXT(file);
+                }
+
+                if (extractedText && extractedText.trim().length > 0) {
+                    const input = document.getElementById('concept-input');
+                    input.value = extractedText.trim();
+                    analyzeWords();
+                } else {
+                    alert('No se pudo extraer texto legible del archivo seleccionado.');
+                }
+            } catch (err) {
+                console.error('Error al procesar archivo:', err);
+                alert('Error al leer el archivo: ' + err.message);
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function extractTextFromTXT(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(new Error('Error al leer el archivo de texto.'));
+                reader.readAsText(file);
+            });
+        }
+
+        async function extractTextFromPDF(file) {
+            if (typeof pdfjsLib === 'undefined') {
+                throw new Error('Librería PDF.js no disponible.');
+            }
+
+            const arrayBuffer = await file.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+
+            let fullText = '';
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n';
+            }
+
+            return fullText;
         }
 
         /* ------------------------------------------------------------- */
