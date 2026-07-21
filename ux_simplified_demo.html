@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlashFlash - Visualizador Rápido de Palabras (Rapid Flash Word Displayer)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', 'Noto Sans', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .btn-active-scale:active { transform: scale(0.97); }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- Encabezado con Explicación Ultra-Sencilla ("Flash Word Displayer") -->
+    <header id="main-header" class="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 sm:px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black text-xl shadow-md">
+                    ⚡
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-slate-900 leading-none flex items-center gap-2">
+                        <span>FlashFlash</span>
+                        <span class="text-slate-300 font-light">/</span>
+                        <span class="text-slate-900 font-bold text-lg" id="header-main-title">Visualizador Rápido de Palabras</span>
+                    </h1>
+                    <p class="text-xs text-emerald-700 font-bold mt-1.5" id="header-tagline">Pega, proyecta y memoriza</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="toggleDemoLanguage()" class="text-xs font-bold text-slate-700 hover:text-emerald-600 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 transition-all">
+                    <span id="lang-indicator">🌐 ES</span>
+                </button>
+                <button onclick="toggleHelpModal()" class="text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all">
+                    <span>❓ ¿Cómo usar?</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Área Principal de la Aplicación -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- COLUMNA IZQUIERDA: CAMPO DE TEXTO PROTAGONISTA ARRIBA + GENERACIÓN IA ABAJO -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- 1. ELEMENTO PROTAGONISTA PRINCIPAL ARRIBA: EL VISUALIZADOR DE PALABRAS -->
+                <div class="bg-white rounded-3xl shadow-xl border-2 border-emerald-500 p-6 sm:p-8 space-y-5 relative">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 mb-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Elemento Principal
+                            </span>
+                            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">Palabras a Proyectar</h2>
+                            <p class="text-xs text-slate-500 mt-1" id="input-subtext">Pega o escribe tus conceptos separados por comas para proyectarlos uno a uno en pantalla gigante.</p>
+                        </div>
+                        <span id="demo-count" class="text-xs text-emerald-800 font-extrabold bg-emerald-100 px-3.5 py-2 rounded-xl border border-emerald-300">
+                            12 palabras detectadas
+                        </span>
+                    </div>
+
+                    <!-- CAMPO DE TEXTO GIGANTE Y PROTAGONISTA -->
+                    <div class="relative">
+                        <textarea id="demo-input" 
+                            class="w-full h-72 p-5 text-xl font-medium border-2 border-slate-200 rounded-2xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:outline-none transition-all shadow-inner resize-none font-sans leading-relaxed text-slate-800 placeholder-slate-400"
+                            placeholder="Resiliencia, Aprendizaje, Accesibilidad, Enfoque, Disciplina..."
+                            oninput="updateDemoCount()">Consistencia, Retroalimentación, Estructura, Legibilidad, Carga Cognitiva, Tolerancia, Flexibilidad, Simplicidad, Accesibilidad, Claridad, Interacción, Eficiencia</textarea>
+                    </div>
+
+                    <!-- Presets Rápidos de Muestra debajo del Textarea -->
+                    <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                        <span class="text-xs font-bold text-slate-500">Cargar lista de ejemplo:</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="loadPresetText('ux')" class="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold rounded-xl text-slate-600 border border-slate-200 transition-all">
+                                💡 Principios UX
+                            </button>
+                            <button onclick="loadPresetText('tech')" class="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold rounded-xl text-slate-600 border border-slate-200 transition-all">
+                                🌐 Tecnología 2026
+                            </button>
+                            <button onclick="loadPresetText('focus')" class="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold rounded-xl text-slate-600 border border-slate-200 transition-all">
+                                ✨ Enfoque Matutino
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. HERRAMIENTA SECUNDARIA ABAJO: GENERACIÓN AUTOMÁTICA CON GEMINI -->
+                <div class="bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-slate-100 border-2 border-emerald-200 rounded-3xl p-6 space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🪄</span>
+                        <div>
+                            <h3 class="text-sm font-extrabold uppercase tracking-wider text-emerald-900">¿Prefieres generar una lista automáticamente con IA?</h3>
+                            <p class="text-xs text-slate-500">Escribe cualquier tema y Gemini creará las palabras directamente en el cuadro principal de arriba.</p>
+                        </div>
+                    </div>
+
+                    <!-- Input del Prompt y Botón de Generar -->
+                    <div class="flex gap-2">
+                        <input type="text" id="demo-prompt" 
+                            class="flex-grow px-4 py-3 text-sm border-2 border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white" 
+                            placeholder="Ej: 10 palabras para aprender Ruso o Términos de Docker..."
+                            onkeydown="if(event.key === 'Enter') generateDemoDeck()">
+                        <button onclick="generateDemoDeck()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-extrabold rounded-xl shadow-md transition-all border-b-2 border-emerald-700">
+                            Generar
+                        </button>
+                    </div>
+
+                    <!-- Prompts de Ejemplo de 1-Clic Abajo -->
+                    <div class="space-y-2 pt-1">
+                        <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Prompts Rápidos de Ejemplo:</span>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <button onclick="usePrompt('Genera 10 palabras para aprender Japonés con la estructura: Kanji (Romaji) - Traducción')" 
+                                class="px-3 py-1.5 bg-white hover:bg-emerald-500 hover:text-white border border-emerald-300 text-emerald-900 rounded-lg transition-all text-xs font-semibold shadow-xs">
+                                🇯🇵 Japonés (Kanji - Romaji - Trad)
+                            </button>
+                            <button onclick="usePrompt('Genera 10 palabras para aprender Ruso con la estructura: Palabra (Trasliteración) - Traducción')" 
+                                class="px-3 py-1.5 bg-white hover:bg-emerald-500 hover:text-white border border-emerald-300 text-emerald-900 rounded-lg transition-all text-xs font-semibold shadow-xs">
+                                🇷🇺 Ruso (Palabra - Translit - Trad)
+                            </button>
+                            <button onclick="usePrompt('Genera 10 palabras avanzadas de Vocabulario B2 en Alemán con su traducción')" 
+                                class="px-3 py-1.5 bg-white hover:bg-emerald-500 hover:text-white border border-emerald-300 text-emerald-900 rounded-lg transition-all text-xs font-semibold shadow-xs">
+                                🇩🇪 Alemán B2
+                            </button>
+                            <button onclick="usePrompt('Genera 10 conceptos fundamentales de Cloud Architecture y Docker')" 
+                                class="px-3 py-1.5 bg-white hover:bg-emerald-500 hover:text-white border border-emerald-300 text-emerald-900 rounded-lg transition-all text-xs font-semibold shadow-xs">
+                                ☁️ Cloud & DevOps
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLUMNA DERECHA: AJUSTES DE LECTURA Y BOTÓN DE INICIO -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+                    <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <span>⚙️</span> Ajustes de Lectura
+                    </h3>
+
+                    <!-- Velocidad -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label for="demo-speed" class="text-sm font-bold text-slate-700">⏱️ Velocidad de Cambio</label>
+                            <span id="demo-speed-val" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg">1.0s (Normal)</span>
+                        </div>
+                        <input type="range" id="demo-speed" min="0.2" max="3.0" step="0.1" value="1.0" 
+                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                            oninput="updateDemoSpeed(this.value)">
+                        <div class="flex justify-between text-xs text-slate-400 font-medium px-1">
+                            <span>Ultra Rápido (0.2s)</span>
+                            <span>Normal (1s)</span>
+                            <span>Lento (3s)</span>
+                        </div>
+                    </div>
+
+                    <!-- Orden de Tarjetas -->
+                    <div class="space-y-3 pt-2">
+                        <label class="block text-sm font-bold text-slate-700">🔀 Orden de Tarjetas</label>
+                        <div class="grid grid-cols-2 gap-3 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                            <button id="btn-seq" onclick="setDemoOrder('seq')" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-white text-emerald-700 shadow-sm border border-slate-200">
+                                En Lista (1, 2, 3...)
+                            </button>
+                            <button id="btn-shuf" onclick="setDemoOrder('shuf')" class="py-2.5 px-4 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900">
+                                Mezcladas 🔀
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CTA Principal -->
+                    <div class="pt-4">
+                        <button onclick="startDemoProjection()" class="btn-active-scale w-full py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-lg rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 border-b-4 border-emerald-700">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Iniciar Proyección Matutina</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Atajos rápidos -->
+                <div class="bg-slate-100 border border-slate-200 rounded-3xl p-6 text-slate-600 space-y-3">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                        <span>📺</span> Control Remoto de TV y Teclado:
+                    </h4>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                            <span>Pausar / Continuar:</span>
+                            <kbd class="px-2 py-0.5 bg-slate-100 border rounded font-mono font-bold text-slate-800">Espacio</kbd>
+                        </div>
+                        <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                            <span>Cambiar Tarjeta:</span>
+                            <kbd class="px-2 py-0.5 bg-slate-100 border rounded font-mono font-bold text-slate-800">◄  ►</kbd>
+                        </div>
+                        <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                            <span>Salir al inicio:</span>
+                            <kbd class="px-2 py-0.5 bg-slate-100 border rounded font-mono font-bold text-slate-800">Esc</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-start border-b border-slate-200 pb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        ❓ ¿Cómo usar FlashFlash?
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Visualizador Rápido de Palabras en 3 pasos sencillos</p>
+                </div>
+                <button onclick="toggleHelpModal()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-900 text-xl font-bold">
+                    &times;
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-700">
+                <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                    <h4 class="font-bold text-emerald-950">1. Escribe o proyecta tus conceptos 📝</h4>
+                    <p class="text-xs text-emerald-800 mt-1">Ingresa tus palabras clave en el cuadro principal gigante arriba.</p>
+                </div>
+                <div class="p-4 bg-teal-50 rounded-2xl border border-teal-100">
+                    <h4 class="font-bold text-teal-950">2. Ajusta tu velocidad ⏱️</h4>
+                    <p class="text-xs text-teal-800 mt-1">Elige qué tan rápido quieres que pasen las tarjetas.</p>
+                </div>
+                <div class="p-4 bg-sky-50 rounded-2xl border border-sky-100">
+                    <h4 class="font-bold text-sky-950">3. ¡Disfruta tu lectura! ☕</h4>
+                    <p class="text-xs text-sky-800 mt-1">Presiona el botón verde gigante <strong>Iniciar Proyección Matutina</strong>.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="toggleHelpModal()" class="px-6 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl">
+                    ¡Entendido!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Funcionalidad Demo -->
+    <script>
+        let demoLang = 'es';
+
+        function toggleDemoLanguage() {
+            demoLang = demoLang === 'es' ? 'en' : 'es';
+            const title = document.getElementById('header-main-title');
+            const tag = document.getElementById('header-tagline');
+            const sub = document.getElementById('input-subtext');
+            const ind = document.getElementById('lang-indicator');
+            
+            if (demoLang === 'en') {
+                ind.textContent = '🌐 EN';
+                title.textContent = 'Rapid Flash Word Displayer';
+                tag.textContent = 'Paste, project & memorize';
+                sub.textContent = 'Paste or type your concepts separated by commas to project them one by one on a big screen.';
+            } else {
+                ind.textContent = '🌐 ES';
+                title.textContent = 'Visualizador Rápido de Palabras';
+                tag.textContent = 'Pega, proyecta y memoriza';
+                sub.textContent = 'Pega o escribe tus conceptos separados por comas para proyectarlos uno a uno en pantalla gigante.';
+            }
+        }
+
+        function toggleHelpModal() {
+            document.getElementById('help-modal').classList.toggle('hidden');
+        }
+
+        function loadPresetText(type) {
+            const area = document.getElementById('demo-input');
+            if (type === 'ux') {
+                area.value = "Consistencia, Retroalimentación, Estructura, Legibilidad, Carga Cognitiva, Tolerancia, Flexibilidad, Simplicidad, Accesibilidad, Claridad, Interacción, Eficiencia";
+            } else if (type === 'tech') {
+                area.value = "Inteligencia Artificial, Interfaz 10-pies, Computación Cuántica, Edge Computing, Metaverso, UI Autonómica, Nanotecnología, Sostenibilidad, Blockchain, Web3, IoT";
+            } else if (type === 'focus') {
+                area.value = "Disciplina, Enfoque, Constancia, Progreso, Creatividad, Gratitud, Resiliencia, Aprendizaje, Innovación, Éxito, Motivación, Propósito";
+            }
+            updateDemoCount();
+        }
+
+        function usePrompt(text) {
+            document.getElementById('demo-prompt').value = text;
+            generateDemoDeck();
+        }
+
+        function generateDemoDeck() {
+            const prompt = document.getElementById('demo-prompt').value;
+            if (!prompt) return;
+
+            if (prompt.includes('Japonés')) {
+                document.getElementById('demo-input').value = "Konnichiwa (こんにちは) - Hola, Arigatou (ありがとう) - Gracias, Ohayou (おはよう) - Buenos días, Sayounara (さようなら) - Adiós, Neko (猫) - Gato";
+            } else if (prompt.includes('Ruso')) {
+                document.getElementById('demo-input').value = "Spasibo (Спасибо) - Gracias, Privet (Привет) - Hola, Poka (Пока) - Adiós, Da (Да) - Sí, Net (Нет) - No";
+            } else {
+                document.getElementById('demo-input').value = "Concepto 1, Concepto 2, Concepto 3, Concepto 4, Concepto 5";
+            }
+            updateDemoCount();
+        }
+
+        function updateDemoCount() {
+            const val = document.getElementById('demo-input').value;
+            const count = val.split(/[\n,]+/).filter(w => w.trim().length > 0).length;
+            document.getElementById('demo-count').textContent = `${count} palabras detectadas`;
+        }
+
+        function updateDemoSpeed(val) {
+            document.getElementById('demo-speed-val').textContent = `${val}s (${val < 0.5 ? 'Ultra Rápido' : val <= 1.5 ? 'Normal' : 'Lento'})`;
+        }
+
+        function setDemoOrder(type) {
+            const bSeq = document.getElementById('btn-seq');
+            const bShuf = document.getElementById('btn-shuf');
+            if (type === 'seq') {
+                bSeq.className = "py-2.5 px-4 rounded-xl font-bold text-xs bg-white text-emerald-700 shadow-sm border border-slate-200";
+                bShuf.className = "py-2.5 px-4 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900";
+            } else {
+                bShuf.className = "py-2.5 px-4 rounded-xl font-bold text-xs bg-white text-emerald-700 shadow-sm border border-slate-200";
+                bSeq.className = "py-2.5 px-4 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900";
+            }
+        }
+
+        function startDemoProjection() {
+            alert("¡Iniciando Proyección Matutina! Pantalla de lectura gigante a 10 pies de distancia activa.");
+        }
+    </script>
+</body>
+</html>
