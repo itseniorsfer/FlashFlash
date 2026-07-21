@@ -236,6 +236,20 @@
                         </div>
                     </div>
 
+                    <!-- Ritmo de Transición: Fijo vs Inteligente (Adaptativo) -->
+                    <div class="space-y-3 pt-2">
+                        <label class="block text-sm font-bold text-slate-700" data-i18n="timingModeLabel">⏱️ Ritmo de Transición</label>
+                        <div class="grid grid-cols-2 gap-3 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                            <button id="timing-manual" onclick="setTimingMode('manual')" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-white text-teal-700 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-2" aria-pressed="true">
+                                <span data-i18n="timingManual">Fijo (Manual)</span>
+                            </button>
+                            <button id="timing-adaptive" onclick="setTimingMode('adaptive')" class="py-2.5 px-4 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2" aria-pressed="false">
+                                <span data-i18n="timingAdaptive">Inteligente (Frases) 🧠</span>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400" id="timing-hint" data-i18n="timingHintManual">Respeta exactamente el tiempo fijo del slider en cada tarjeta.</p>
+                    </div>
+
                     <!-- Orden de Tarjetas -->
                     <div class="space-y-3 pt-2">
                         <label class="block text-sm font-bold text-slate-700" data-i18n="orderLabel">🔀 Orden de Tarjetas</label>
@@ -495,6 +509,7 @@
             intervalRate: 500, // Speed in milliseconds
             isPlaying: false,
             playbackOrder: 'sequential', // 'sequential' or 'shuffle'
+            timingMode: 'manual', // 'manual' (fixed slider speed) or 'adaptive' (smart word length)
             shuffledIndices: [],
             playbackTimer: null,
             soundEnabled: false,
@@ -535,6 +550,11 @@
                 speedFast: "Ultra Rápido (0.2s)",
                 speedStd: "Estándar (1s)",
                 speedSlow: "Lento (5s)",
+                timingModeLabel: "⏱️ Ritmo de Transición",
+                timingManual: "Fijo (Manual)",
+                timingAdaptive: "Inteligente (Frases) 🧠",
+                timingHintManual: "Respeta exactamente el tiempo fijo del slider en cada tarjeta.",
+                timingHintAdaptive: "Ajusta automáticamente el tiempo según la cantidad de palabras de cada tarjeta.",
                 orderLabel: "🔀 Orden de Tarjetas",
                 orderSubtitle: "Configura el orden de visualización de tus tarjetas.",
                 orderSeq: "En Lista (1, 2, 3...)",
@@ -574,6 +594,11 @@
                 speedFast: "Ultra Fast (0.2s)",
                 speedStd: "Standard (1s)",
                 speedSlow: "Slow (5s)",
+                timingModeLabel: "⏱️ Transition Pace",
+                timingManual: "Fixed (Manual)",
+                timingAdaptive: "Smart (Sentences) 🧠",
+                timingHintManual: "Uses exact slider duration for every card.",
+                timingHintAdaptive: "Automatically adjusts display duration based on word count.",
                 orderLabel: "🔀 Card Order",
                 orderSubtitle: "Configure the display sequence for your cards.",
                 orderSeq: "In Order (1, 2, 3...)",
@@ -823,8 +848,33 @@
             document.getElementById('speed-display').textContent = `${val}s`;
 
             if (state.isPlaying) {
-                clearInterval(state.playbackTimer);
-                state.playbackTimer = setInterval(advanceSlide, state.intervalRate);
+                scheduleNextSlide();
+            }
+        }
+
+        function setTimingMode(mode) {
+            state.timingMode = mode;
+            const bMan = document.getElementById('timing-manual');
+            const bAdapt = document.getElementById('timing-adaptive');
+            const hint = document.getElementById('timing-hint');
+            const t = I18N[currentLang] || I18N.es;
+
+            if (mode === 'manual') {
+                bMan.className = "py-2.5 px-4 rounded-xl font-bold text-xs bg-white text-teal-700 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-2";
+                bMan.setAttribute('aria-pressed', 'true');
+                bAdapt.className = "py-2.5 px-4 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2";
+                bAdapt.setAttribute('aria-pressed', 'false');
+                hint.textContent = t.timingHintManual;
+            } else {
+                bAdapt.className = "py-2.5 px-4 rounded-xl font-bold text-xs bg-white text-teal-700 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-2";
+                bAdapt.setAttribute('aria-pressed', 'true');
+                bMan.className = "py-2.5 px-4 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2";
+                bMan.setAttribute('aria-pressed', 'false');
+                hint.textContent = t.timingHintAdaptive;
+            }
+
+            if (state.isPlaying) {
+                scheduleNextSlide();
             }
         }
 
@@ -891,12 +941,12 @@
             updateProjectionDisplay();
             updatePlayPauseButtonUI();
 
-            state.playbackTimer = setInterval(advanceSlide, state.intervalRate);
+            scheduleNextSlide();
         }
 
         function stopProjection() {
             state.isPlaying = false;
-            if (state.playbackTimer) clearInterval(state.playbackTimer);
+            if (state.playbackTimer) clearTimeout(state.playbackTimer);
 
             document.getElementById('state-b').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
@@ -905,12 +955,36 @@
             closeAIExplainerModal();
         }
 
+        function calculateDwellTime(text) {
+            if (state.timingMode === 'manual' || !text) {
+                return state.intervalRate;
+            }
+            const wordsCount = text.trim().split(/\s+/).length;
+            // Base speed from slider + 180ms per extra word for comfortable cognitive reading
+            const baseMs = state.intervalRate || 500;
+            const extraWordMs = Math.max(0, wordsCount - 1) * 180;
+            return baseMs + extraWordMs;
+        }
+
+        function scheduleNextSlide() {
+            if (!state.isPlaying) return;
+            if (state.playbackTimer) clearTimeout(state.playbackTimer);
+
+            const targetIndex = getEffectiveIndex();
+            const currentWordText = state.words[targetIndex] || "";
+            const dwellMs = calculateDwellTime(currentWordText);
+
+            state.playbackTimer = setTimeout(() => {
+                advanceSlide();
+            }, dwellMs);
+        }
+
         function togglePlayback() {
             state.isPlaying = !state.isPlaying;
             if (state.isPlaying) {
-                state.playbackTimer = setInterval(advanceSlide, state.intervalRate);
+                scheduleNextSlide();
             } else {
-                if (state.playbackTimer) clearInterval(state.playbackTimer);
+                if (state.playbackTimer) clearTimeout(state.playbackTimer);
             }
             updatePlayPauseButtonUI();
         }
@@ -945,6 +1019,7 @@
             state.currentIndex = (state.currentIndex + 1) % state.words.length;
             updateProjectionDisplay();
             playAudioCue();
+            scheduleNextSlide();
         }
 
         function manualNext() {
@@ -955,6 +1030,7 @@
             state.currentIndex = (state.currentIndex - 1 + state.words.length) % state.words.length;
             updateProjectionDisplay();
             playAudioCue();
+            scheduleNextSlide();
         }
 
         function updateProjectionDisplay() {
