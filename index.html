@@ -236,6 +236,57 @@
                     </div>
                 </div>
 
+                <!-- 3. GESTOR DE LISTAS LOCALES -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">💾</span>
+                            <div>
+                                <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800" data-i18n="deckManagerTitle">Mis Listas Guardadas</h3>
+                                <p class="text-xs text-slate-400" data-i18n="deckManagerSubtitle">Guarda tus palabras localmente en este navegador.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 1: Selección de lista existente -->
+                    <div class="space-y-2">
+                        <label for="saved-decks-select" class="block text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="selectListLabel">Seleccionar Lista:</label>
+                        <div class="flex gap-2">
+                            <select id="saved-decks-select" onchange="loadSavedDeck(this.value)" class="flex-grow px-3.5 py-2.5 text-sm border-2 border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 bg-white font-medium text-slate-700">
+                                <option value="" data-i18n="selectListDefault">-- Elige una lista guardada --</option>
+                            </select>
+                            <button onclick="deleteSelectedDeck()" id="deck-delete-btn" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-extrabold shadow-xs transition-all flex items-center justify-center gap-1.5" disabled>
+                                🗑️ <span data-i18n="deleteDeckBtn">Eliminar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fila 2: Guardar lista actual -->
+                    <div class="space-y-2 pt-2 border-t border-slate-50">
+                        <label for="deck-name-input" class="block text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="saveListLabel">Guardar Lista Actual Como:</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="deck-name-input" class="flex-grow px-4 py-2.5 text-sm border-2 border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 font-medium" placeholder="Ej: Mis Verbos de Alemán, Fórmulas...">
+                            <button onclick="saveCurrentDeck()" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white border border-teal-700 rounded-xl text-xs font-extrabold shadow-xs transition-all flex items-center justify-center gap-1.5">
+                                💾 <span data-i18n="saveDeckBtn">Guardar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fila 3: Importar y Exportar respaldos -->
+                    <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-slate-400" data-i18n="backupTitle">Respaldos:</span>
+                        <div class="flex gap-2">
+                            <button onclick="exportDecks()" class="px-3.5 py-2 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                                📤 <span data-i18n="exportBtn">Exportar todo</span>
+                            </button>
+                            <button onclick="document.getElementById('import-file-input').click()" class="px-3.5 py-2 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                                📥 <span data-i18n="importBtn">Importar</span>
+                            </button>
+                            <input type="file" id="import-file-input" accept=".json" class="hidden" onchange="importDecks(event)">
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- COLUMNA DERECHA: AJUSTES DE LECTURA Y BOTÓN DE INICIO -->
@@ -253,13 +304,13 @@
                         </div>
                         <p class="text-xs text-slate-400" data-i18n="speedSubtitle">Determina qué tan rápido pasa cada palabra en pantalla.</p>
                         <div class="relative pt-1">
-                            <input type="range" id="speed-slider" min="0.2" max="5.0" step="0.1" value="0.5" 
+                            <input type="range" id="speed-slider" min="0.2" max="10.0" step="0.1" value="0.5" 
                                 class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600 focus:outline-none"
                                 oninput="updateSpeedLabel(this.value)">
                             <div class="flex justify-between text-xs text-slate-400 mt-2 px-1 font-medium">
                                 <span data-i18n="speedFast">Ultra Rápido (0.2s)</span>
                                 <span data-i18n="speedStd">Estándar (1s)</span>
-                                <span data-i18n="speedSlow">Lento (5s)</span>
+                                <span data-i18n="speedSlow">Lento (10s)</span>
                             </div>
                         </div>
                     </div>
@@ -579,7 +630,7 @@
                 speedSubtitle: "Determina qué tan rápido pasa cada palabra en pantalla.",
                 speedFast: "Ultra Rápido (0.2s)",
                 speedStd: "Estándar (1s)",
-                speedSlow: "Lento (5s)",
+                speedSlow: "Lento (10s)",
                 timingModeLabel: "⏱️ Ritmo de Transición",
                 timingManual: "Fijo (Manual)",
                 timingAdaptive: "Inteligente (Frases) 🧠",
@@ -596,7 +647,17 @@
                 playingStatus: "REPRODUCIENDO",
                 pausedStatus: "DETENIDO",
                 cardCount: (curr, total) => `Concepto ${curr} / ${total}`,
-                wordsCount: (count) => `${count} palabra(s) detectada(s)`
+                wordsCount: (count) => `${count} palabra(s) detectada(s)`,
+                deckManagerTitle: "Mis Listas Guardadas",
+                deckManagerSubtitle: "Guarda tus palabras localmente en este navegador.",
+                selectListLabel: "Seleccionar Lista:",
+                selectListDefault: "-- Elige una lista guardada --",
+                deleteDeckBtn: "Eliminar",
+                saveListLabel: "Guardar Lista Actual Como:",
+                saveDeckBtn: "Guardar",
+                backupTitle: "Respaldos:",
+                exportBtn: "Exportar todo",
+                importBtn: "Importar"
             },
             en: {
                 langBtn: "🌐 EN",
@@ -625,7 +686,7 @@
                 speedSubtitle: "Determines how fast each word changes on screen.",
                 speedFast: "Ultra Fast (0.2s)",
                 speedStd: "Standard (1s)",
-                speedSlow: "Slow (5s)",
+                speedSlow: "Slow (10s)",
                 timingModeLabel: "⏱️ Transition Pace",
                 timingManual: "Fixed (Manual)",
                 timingAdaptive: "Smart (Sentences) 🧠",
@@ -642,7 +703,17 @@
                 playingStatus: "PLAYING",
                 pausedStatus: "PAUSED",
                 cardCount: (curr, total) => `Card ${curr} / ${total}`,
-                wordsCount: (count) => `${count} word(s) detected`
+                wordsCount: (count) => `${count} word(s) detected`,
+                deckManagerTitle: "My Saved Lists",
+                deckManagerSubtitle: "Save your words locally in this browser.",
+                selectListLabel: "Select List:",
+                selectListDefault: "-- Choose a saved list --",
+                deleteDeckBtn: "Delete",
+                saveListLabel: "Save Current List As:",
+                saveDeckBtn: "Save",
+                backupTitle: "Backups:",
+                exportBtn: "Export all",
+                importBtn: "Import"
             }
         };
 
@@ -665,6 +736,9 @@
 
             document.getElementById('lang-toggle-btn-text').textContent = t.langBtn;
             analyzeWords();
+            if (typeof populateDecksDropdown === 'function') {
+                populateDecksDropdown();
+            }
         }
 
         function toggleLanguage() {
@@ -1244,6 +1318,345 @@
                 stopProjection();
             }
         });
+
+        /* ------------------------------------------------------------- */
+        /* Local Storage Deck Management & Backup System                */
+        /* ------------------------------------------------------------- */
+        
+        function getSavedDecks() {
+            try {
+                const stored = localStorage.getItem('flashflash_saved_decks');
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error("Error reading from localStorage:", e);
+                return [];
+            }
+        }
+
+        function saveSavedDecks(decks) {
+            try {
+                localStorage.setItem('flashflash_saved_decks', JSON.stringify(decks));
+            } catch (e) {
+                console.error("Error writing to localStorage:", e);
+                alert("Error al guardar en el almacenamiento local. Es posible que el almacenamiento esté lleno.");
+            }
+        }
+
+        function populateDecksDropdown() {
+            const select = document.getElementById('saved-decks-select');
+            const deleteBtn = document.getElementById('deck-delete-btn');
+            if (!select || !deleteBtn) return;
+            
+            // Guardamos el valor seleccionado actualmente para ver si aún existe
+            const currentValue = select.value;
+            
+            // Limpiar opciones manteniendo solo la primera
+            select.innerHTML = '';
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.setAttribute('data-i18n', 'selectListDefault');
+            const t = I18N[currentLang] || I18N.es;
+            defaultOpt.textContent = t.selectListDefault || '-- Elige una lista guardada --';
+            select.appendChild(defaultOpt);
+
+            const decks = getSavedDecks();
+            decks.sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0)); // Más recientes primero
+
+            decks.forEach(deck => {
+                const opt = document.createElement('option');
+                opt.value = deck.id;
+                
+                // Contar conceptos
+                const words = sanitizeInputText(deck.conceptos);
+                const wordCountStr = currentLang === 'en' ? `${words.length} words` : `${words.length} palabras`;
+                
+                opt.textContent = `${deck.nombre} (${wordCountStr})`;
+                select.appendChild(opt);
+            });
+
+            // Intentar restaurar la selección previa
+            if (currentValue && decks.some(d => d.id === currentValue)) {
+                select.value = currentValue;
+                deleteBtn.disabled = false;
+            } else {
+                select.value = '';
+                deleteBtn.disabled = true;
+            }
+        }
+
+        function saveCurrentDeck() {
+            const textInput = document.getElementById('concept-input');
+            const nameInput = document.getElementById('deck-name-input');
+            
+            const rawText = textInput.value.trim();
+            if (!rawText) {
+                const toast = document.getElementById('input-error-toast');
+                if (toast) toast.classList.remove('hidden');
+                alert(currentLang === 'en' ? "Write or paste some concepts first." : "Escribe o pega algunos conceptos primero.");
+                return;
+            }
+
+            let name = nameInput.value.trim();
+            if (!name) {
+                // Autogenerar nombre basado en los primeros conceptos
+                const words = sanitizeInputText(rawText);
+                if (words.length > 0) {
+                    name = words.slice(0, 3).join(', ');
+                    if (words.length > 3) name += '...';
+                } else {
+                    name = currentLang === 'en' ? "Unnamed List" : "Lista sin nombre";
+                }
+                nameInput.value = name;
+            }
+
+            const decks = getSavedDecks();
+            const existingDeckIndex = decks.findIndex(d => d.nombre.toLowerCase() === name.toLowerCase());
+
+            let confirmOverwrite = true;
+            if (existingDeckIndex !== -1) {
+                const msg = currentLang === 'en' 
+                    ? `A list named "${name}" already exists. Do you want to overwrite it?` 
+                    : `Ya existe una lista con el nombre "${name}". ¿Deseas sobrescribirla?`;
+                confirmOverwrite = confirm(msg);
+            }
+
+            if (!confirmOverwrite) return;
+
+            const nowStr = new Date().toISOString();
+            if (existingDeckIndex !== -1) {
+                // Actualizar
+                decks[existingDeckIndex].conceptos = rawText;
+                decks[existingDeckIndex].fecha = nowStr;
+            } else {
+                // Crear nueva
+                const newDeck = {
+                    id: 'deck_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    nombre: name,
+                    conceptos: rawText,
+                    fecha: nowStr
+                };
+                decks.push(newDeck);
+            }
+
+            saveSavedDecks(decks);
+            populateDecksDropdown();
+            
+            // Seleccionar automáticamente la lista guardada/actualizada
+            const savedDeck = decks.find(d => d.nombre === name);
+            if (savedDeck) {
+                document.getElementById('saved-decks-select').value = savedDeck.id;
+                document.getElementById('deck-delete-btn').disabled = false;
+            }
+
+            // Limpiar input de nombre
+            nameInput.value = '';
+
+            // Pequeño feedback visual en el select
+            const select = document.getElementById('saved-decks-select');
+            select.classList.add('ring-2', 'ring-teal-500');
+            setTimeout(() => select.classList.remove('ring-2', 'ring-teal-500'), 1000);
+        }
+
+        let deleteConfirmTimeout = null;
+
+        function resetDeleteButtonState() {
+            const deleteBtn = document.getElementById('deck-delete-btn');
+            if (!deleteBtn) return;
+
+            deleteBtn.classList.remove('confirm-state', 'bg-rose-600', 'text-white', 'hover:bg-rose-700');
+            deleteBtn.classList.add('bg-rose-50', 'text-rose-700', 'hover:bg-rose-100');
+            
+            const t = I18N[currentLang] || I18N.es;
+            const deleteLabel = deleteBtn.querySelector('span');
+            if (deleteLabel) {
+                deleteLabel.textContent = t.deleteDeckBtn || (currentLang === 'en' ? 'Delete' : 'Eliminar');
+            }
+        }
+
+        function loadSavedDeck(id) {
+            const deleteBtn = document.getElementById('deck-delete-btn');
+            
+            // Resetear estado de confirmación si cambia la selección
+            if (deleteConfirmTimeout) clearTimeout(deleteConfirmTimeout);
+            resetDeleteButtonState();
+
+            if (!id) {
+                if (deleteBtn) deleteBtn.disabled = true;
+                return;
+            }
+
+            const decks = getSavedDecks();
+            const deck = decks.find(d => d.id === id);
+            
+            if (deck) {
+                const textarea = document.getElementById('concept-input');
+                textarea.value = deck.conceptos;
+                
+                // Rellenar también el input de nombre por si desea editarlo y guardarlo con el mismo nombre
+                document.getElementById('deck-name-input').value = deck.nombre;
+                
+                analyzeWords();
+                if (deleteBtn) deleteBtn.disabled = false;
+
+                // Animación de destello en el textarea
+                textarea.classList.add('ring-4', 'ring-teal-500/20');
+                setTimeout(() => textarea.classList.remove('ring-4', 'ring-teal-500/20'), 1000);
+            }
+        }
+
+        function deleteSelectedDeck() {
+            const select = document.getElementById('saved-decks-select');
+            const deleteBtn = document.getElementById('deck-delete-btn');
+            if (!select || !deleteBtn) return;
+
+            const id = select.value;
+            if (!id) return;
+
+            const decks = getSavedDecks();
+            const deck = decks.find(d => d.id === id);
+            if (!deck) return;
+
+            // Primer clic: Cambiar a modo de confirmación visual
+            if (!deleteBtn.classList.contains('confirm-state')) {
+                deleteBtn.classList.add('confirm-state', 'bg-rose-600', 'text-white', 'hover:bg-rose-700');
+                deleteBtn.classList.remove('bg-rose-50', 'text-rose-700', 'hover:bg-rose-100');
+                
+                const deleteLabel = deleteBtn.querySelector('span');
+                if (deleteLabel) {
+                    deleteLabel.textContent = currentLang === 'en' ? 'Confirm?' : '¿Confirmar?';
+                }
+
+                if (deleteConfirmTimeout) clearTimeout(deleteConfirmTimeout);
+                deleteConfirmTimeout = setTimeout(() => {
+                    resetDeleteButtonState();
+                }, 3000);
+
+                return;
+            }
+
+            // Segundo clic (dentro de los 3 segundos): Proceder al borrado
+            if (deleteConfirmTimeout) clearTimeout(deleteConfirmTimeout);
+            
+            const filteredDecks = decks.filter(d => d.id !== id);
+            saveSavedDecks(filteredDecks);
+            
+            // Limpiar campos e UI
+            document.getElementById('deck-name-input').value = '';
+            document.getElementById('concept-input').value = '';
+            analyzeWords();
+
+            populateDecksDropdown();
+            resetDeleteButtonState();
+        }
+
+        function exportDecks() {
+            const decks = getSavedDecks();
+            if (decks.length === 0) {
+                alert(currentLang === 'en' 
+                    ? "You don't have any saved lists to export." 
+                    : "No tienes ninguna lista guardada para exportar.");
+                return;
+            }
+
+            const payload = {
+                version: "1.0",
+                source: "FlashFlash",
+                exportedAt: new Date().toISOString(),
+                listas: decks
+            };
+
+            const jsonString = JSON.stringify(payload, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `flashflash_respaldo_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            
+            // Limpieza
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function importDecks(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Validación de esquema
+                    let listasAImportar = [];
+                    if (importedData && Array.isArray(importedData.listas)) {
+                        listasAImportar = importedData.listas;
+                    } else if (Array.isArray(importedData)) {
+                        listasAImportar = importedData;
+                    } else {
+                        throw new Error(currentLang === 'en' 
+                            ? "Invalid file format. Must contain an array of lists." 
+                            : "Formato de archivo inválido. Debe contener una lista de barajas.");
+                    }
+
+                    // Validar campos de cada lista
+                    const validListas = listasAImportar.filter(item => {
+                        return item && typeof item.nombre === 'string' && typeof item.conceptos === 'string';
+                    });
+
+                    if (validListas.length === 0) {
+                        alert(currentLang === 'en'
+                            ? "No valid lists found in the backup file."
+                            : "No se encontraron listas válidas en el archivo de respaldo.");
+                        return;
+                    }
+
+                    const existingDecks = getSavedDecks();
+                    let importedCount = 0;
+                    let overwrittenCount = 0;
+
+                    validListas.forEach(importedDeck => {
+                        const duplicateIndex = existingDecks.findIndex(d => d.nombre.toLowerCase() === importedDeck.nombre.toLowerCase());
+                        
+                        // Asegurar ID único
+                        const cleanDeck = {
+                            id: importedDeck.id || ('deck_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)),
+                            nombre: importedDeck.nombre,
+                            conceptos: importedDeck.conceptos,
+                            fecha: importedDeck.fecha || new Date().toISOString()
+                        };
+
+                        if (duplicateIndex !== -1) {
+                            // Si ya existe una con el mismo nombre, se sobrescribe con la importada
+                            existingDecks[duplicateIndex] = cleanDeck;
+                            overwrittenCount++;
+                        } else {
+                            existingDecks.push(cleanDeck);
+                            importedCount++;
+                        }
+                    });
+
+                    saveSavedDecks(existingDecks);
+                    populateDecksDropdown();
+
+                    const successMsg = currentLang === 'en'
+                        ? `Backup restored successfully!\n- Imported new: ${importedCount}\n- Overwritten: ${overwrittenCount}`
+                        : `¡Respaldo restaurado con éxito!\n- Listas nuevas importadas: ${importedCount}\n- Sobrescritas: ${overwrittenCount}`;
+                    
+                    alert(successMsg);
+
+                } catch (err) {
+                    alert((currentLang === 'en' ? "Error importing backup: " : "Error al importar el respaldo: ") + err.message);
+                } finally {
+                    // Resetear input de archivo para permitir subir el mismo archivo después
+                    event.target.value = '';
+                }
+            };
+            
+            reader.readAsText(file);
+        }
 
         // Initialize i18n
         setLanguage(currentLang);
